@@ -1,0 +1,114 @@
+#root {
+  font-family: Merriweather, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.background-main {
+  margin: 0 auto;
+  text-align: center;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .6) 0, rgba(0, 0, 0, .6) 100%), url(/image/bg-masthead.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.background-signin {
+  background-image: url(/image/bg-login.jpg);
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.navbar-brand {
+  display: inline-block;
+  padding-top: .3125rem;
+  padding-bottom: .3125rem;
+  margin-right: 1rem;
+  font-size: 1.55rem;
+  line-height: inherit;
+  white-space: nowrap;
+}         
+
+.nav-bold {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 600;
+}
+
+.nav-light {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+}
+
+.body-header {
+  max-width: 550px;
+  line-height: 1.2;
+}
+
+hr.divider {
+  max-width: 20rem;
+  border-width: .1rem;
+  border-color: #8c8c8c;
+}
+
+.btn-xl {
+  padding: 1.25rem 2.25rem;
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 10rem;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #8c8c8c;
+  border-color: #8c8c8c;
+}
+
+.btn-primary:hover {
+  color: #fff;
+  background-color: #737373; /* slightly darker gray */
+  border-color: #737373;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
