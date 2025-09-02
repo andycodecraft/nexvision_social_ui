@@ -6,6 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '127.0.0.1',
-    port: 4200
+    port: 4200,
+    proxy: {
+      '/api': {
+        target: process.env.API_URL, // <- from .env
+        changeOrigin: true,
+      },
+    },
   }
 })
