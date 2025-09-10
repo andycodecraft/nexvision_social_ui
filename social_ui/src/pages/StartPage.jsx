@@ -12,8 +12,13 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Toolbar,
   Tooltip,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Avatar,
+  Divider,
+  Chip,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
@@ -21,23 +26,24 @@ import PersonIcon from "@mui/icons-material/Person";
 import ImageIcon from "@mui/icons-material/Image";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuIcon from "@mui/icons-material/Menu";
-import IconButton from "@mui/material/IconButton";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { NavLink, Outlet } from "react-router-dom";
 
 const drawerWidth = 240;
+const HEADER_HEIGHT = 64;
 
 const theme = createTheme({
-  palette: { mode: "dark", primary: { main: "#22d3ee" } }, // cyan
+  palette: { mode: "dark", primary: { main: "#22d3ee" } },
   shape: { borderRadius: 16 },
   typography: { fontWeightBold: 800 },
 });
 
 const navItems = [
-  { label: "Dashboard",   icon: <DashboardIcon />, to: "/dashboard", end: true },
-  { label: "Track",       icon: <SearchIcon />,    to: "/track" },
-  { label: "Personality", icon: <PersonIcon />,    to: "/personality" },
-  { label: "Image Search",icon: <ImageIcon />,     to: "/image-search" },
-  { label: "Setup",       icon: <SettingsIcon />,  to: "/setup" },
+  { label: "Dashboard",   icon: <DashboardIcon />, to: "/startpage/dashboard", end: true },
+  { label: "Track",       icon: <SearchIcon />,    to: "/startpage/track" },
+  { label: "Personality", icon: <PersonIcon />,    to: "/startpage/personality" },
+  { label: "Image Search",icon: <ImageIcon />,     to: "/startpage/image-search" },
+  { label: "Setup",       icon: <SettingsIcon />,  to: "/startpage/setup" },
 ];
 
 export default function StartPage() {
@@ -53,20 +59,13 @@ export default function StartPage() {
         flexDirection: "column",
       }}
     >
-      <Toolbar sx={{ px: 2 }}>
-        <Typography variant="h6" fontWeight={800}>
-          NEXVISION
-        </Typography>
-      </Toolbar>
-
-      <List sx={{ px: 1, py: 0.5, gap: 0.25, display: "grid" }}>
-        {navItems.map((i) => {
-          const Button = (
+      <List sx={{ mt: 3, px: 1, py: 0.5, gap: 0.25, display: "grid" }}>
+        {navItems.map((i) => (
+          <Tooltip key={i.label} title={i.label} arrow disableHoverListener={{ md: true }}>
             <ListItemButton
-              key={i.label}
               component={NavLink}
               to={i.to}
-              // @ts-ignore (NavLink's 'end' prop pass-through)
+              // @ts-ignore
               end={i.end}
               onClick={() => setMobileOpen(false)}
               sx={{
@@ -74,7 +73,6 @@ export default function StartPage() {
                 px: { xs: 1, md: 1.25 },
                 py: 1,
                 gap: 1,
-                transition: "background-color 120ms, transform 120ms",
                 "& .MuiListItemIcon-root": {
                   minWidth: 0,
                   mr: { xs: 0, md: 1.25 },
@@ -85,11 +83,6 @@ export default function StartPage() {
                   "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
                 },
                 "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
-                "&:focus-visible": {
-                  outline: "2px solid",
-                  outlineColor: "primary.main",
-                  outlineOffset: 2,
-                },
               }}
             >
               <ListItemIcon>{i.icon}</ListItemIcon>
@@ -99,17 +92,8 @@ export default function StartPage() {
                 sx={{ display: { xs: "none", md: "block" } }}
               />
             </ListItemButton>
-          );
-
-          return (
-            <Box key={i.label}>
-              {/* Tooltip helps on xs where label is hidden */}
-              <Tooltip title={i.label} arrow disableHoverListener={{ md: true }}>
-                {Button}
-              </Tooltip>
-            </Box>
-          );
-        })}
+          </Tooltip>
+        ))}
       </List>
     </Box>
   );
@@ -117,33 +101,65 @@ export default function StartPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#0b0f15" }}>
-        {/* Top bar (mobile) */}
-        <Box
-          component="header"
-          sx={{
-            position: { xs: "sticky", md: "static" },
-            top: 0,
-            zIndex: (t) => t.zIndex.appBar,
-            display: { xs: "flex", md: "none" },
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: 2,
-            py: 1.5,
-            bgcolor: "rgba(13,20,32,0.8)",
-            backdropFilter: "blur(6px)",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-            width: "100%",
-          }}
-        >
-          <IconButton color="inherit" onClick={() => setMobileOpen((v) => !v)}>
-            <MenuIcon />
-          </IconButton>
-          <Typography fontWeight={800}>NEXVISION</Typography>
-          <Box sx={{ width: 40 }} />
-        </Box>
+      {/* -------- Top Header (like your screenshot) -------- */}
+      <AppBar
+        elevation={0}
+        position="fixed"
+        sx={{
+          height: HEADER_HEIGHT,
+          justifyContent: "center",
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.70) 100%)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(6px)",
+          zIndex: (t) => t.zIndex.drawer + 1, // stay above drawer
+        }}
+      >
+        <Toolbar sx={{ minHeight: HEADER_HEIGHT, px: 2 }}>
+          {/* Left: logo + burger (burger hidden on md+) */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setMobileOpen((v) => !v)}
+              sx={{ display: { xs: "inline-flex", md: "none" } }}
+            >
+              <MenuIcon />
+            </IconButton>
 
-        {/* Permanent drawer on md+, temporary on mobile */}
+            {/* Replace the img src with your logo */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box
+                component="img"
+                src="/image/logo/logo.png"
+                alt="Nexvision"
+                sx={{ height: 50, display: { xs: "none", md: "block" } }}
+              />
+            </Box>
+          </Box>
+
+          {/* Center filler (keeps header flat & clean) */}
+          <Box sx={{ flex: 1 }} />
+
+          {/* Right: user area */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ mx: 0.5, borderColor: "rgba(255,255,255,0.12)" }}
+            />
+            <Avatar sx={{ width: 28, height: 28 }}>W</Avatar>
+            <Typography sx={{ display: { xs: "none", md: "block" } }}>wilson</Typography>
+            <IconButton size="small" color="inherit">
+              <ExpandMoreIcon />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* -------- Layout below header -------- */}
+      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#0b0f15" }}>
+        {/* Side nav: temporary on mobile, permanent on md+; both sit under header */}
         <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
           <Drawer
             variant="temporary"
@@ -152,30 +168,41 @@ export default function StartPage() {
             ModalProps={{ keepMounted: true }}
             sx={{
               display: { xs: "block", md: "none" },
-              "& .MuiDrawer-paper": { width: drawerWidth, boxSizing: "border-box" },
+              "& .MuiDrawer-paper": {
+                width: drawerWidth,
+                boxSizing: "border-box",
+                mt: `${HEADER_HEIGHT}px`,
+                height: `calc(100% - ${HEADER_HEIGHT}px)`,
+              },
             }}
           >
             {drawer}
           </Drawer>
+
           <Drawer
             variant="permanent"
+            open
             sx={{
               display: { xs: "none", md: "block" },
-              "& .MuiDrawer-paper": { width: drawerWidth, boxSizing: "border-box" },
+              "& .MuiDrawer-paper": {
+                width: drawerWidth,
+                boxSizing: "border-box",
+                mt: `${HEADER_HEIGHT}px`,
+                height: `calc(100% - ${HEADER_HEIGHT}px)`,
+              },
             }}
-            open
           >
             {drawer}
           </Drawer>
         </Box>
 
-        {/* Right-side: render active page */}
+        {/* Main content: add top margin equal to header height */}
         <Box
           component="main"
           sx={{
             flex: 1,
-            p: { xs: 3, md: 5 },
-            ml: { md: `${drawerWidth / 2}px` }, // ensure content doesn't sit under drawer
+            p: { xs: 3 },
+            mt: `${HEADER_HEIGHT}px`,
           }}
         >
           <Outlet />
