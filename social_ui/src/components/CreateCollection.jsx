@@ -81,7 +81,7 @@ const StickyActions = styled(Box)(({ theme }) => ({
 
 /* --------------------------- Platform options -------------------------- */
 const platformOptions = [
-  { key: "x", label: "X (Twitter)", icon: XIcon, color: "#1D9BF0" },
+  { key: "Twitter", label: "X (Twitter)", icon: XIcon, color: "#1D9BF0" },
   {
     key: "instagram",
     label: "Instagram",
@@ -96,7 +96,7 @@ const platformOptions = [
 ];
 
 /* ------------------- Debounced, abortable people search ------------------- */
-function usePeopleSearch(query, minLen = 2, delay = 300, platform = "x") {
+function usePeopleSearch(query, minLen = 2, delay = 300, platform = "Twitter") {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const ctrlRef = useRef(null);
@@ -489,7 +489,7 @@ export default function CreateCollectionPage() {
                 const primary = option.name || option.username || "Unknown";
                 const secondary = [
                   option.description,
-                  option.username ? `@${option.username}` : null,
+                  option.username && !option.username.startsWith('@') ? `@${option.username}` : option.username,
                 ]
                   .filter(Boolean)
                   .join(" • ");

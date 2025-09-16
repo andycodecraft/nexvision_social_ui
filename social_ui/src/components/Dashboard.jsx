@@ -26,6 +26,8 @@ import {
   ToggleButtonGroup,
   Badge,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { useProfiles } from "../context/ProfilesContext";
 import { styled } from "@mui/material/styles";
 import { useEffect, useMemo, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
@@ -159,6 +161,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
+  const { profiles, setProfiles } = useProfiles();
 
   // Fetch collections
   useEffect(() => {
@@ -345,7 +348,11 @@ export default function DashboardPage() {
                 lg={3}
               >
                 <Card
-                  sx={{ overflow: "hidden", bgcolor: "background.paper", minWidth: 320 }}
+                  sx={{
+                    overflow: "hidden",
+                    bgcolor: "background.paper",
+                    minWidth: 320,
+                  }}
                   elevation={3}
                 >
                   <Box sx={{ position: "relative" }}>
@@ -481,7 +488,12 @@ export default function DashboardPage() {
                   </CardContent>
 
                   <CardActionArea
-                    onClick={() => console.log("open", col)}
+                    onClick={() => {
+                      console.log("open", col);
+                      setProfiles(col);
+                    }}
+                    component={RouterLink}
+                    to={`/startpage/dashboard/${col._id}`}
                     sx={{ borderTop: "1px solid", borderColor: "divider" }}
                   >
                     <CardHeader
