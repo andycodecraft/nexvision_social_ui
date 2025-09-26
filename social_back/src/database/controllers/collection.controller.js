@@ -26,7 +26,7 @@ exports.getProfiles = async (req, res) => {
       params: searchParams,
     };
 
-    const apiUrl = "http://207.246.103.26:4600/api/search/users";
+    const apiUrl = "http://104.250.167.186:4600/api/search/users";
     const fullUrl = `${apiUrl}?${searchParams.toString()}`;
     const response = await axios.get(fullUrl, {
       headers: requestsArgs.headers,
@@ -69,6 +69,7 @@ exports.saveCollection = async (req, res) => {
         description: p.description ?? "",
         image: p.image ?? p.profileImage ?? "", // ⬅️ accept legacy field, store as `image`
         platform: p.platform || platform,
+        status: 'pending',
         source: p.source || "search",
       }))
       .filter((p) => {

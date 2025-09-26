@@ -11,6 +11,7 @@ const profileSchema = new mongoose.Schema(
     image: String,
     platform: String,
     source: String,
+    status: String
   }
 );
 

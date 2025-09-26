@@ -21,12 +21,11 @@ exports.listPosts = async (req, res) => {
     const userIds = posts.map(post => post.userid);
 
     // Find profiles for the user IDs
-    const profiles = await Profile.find({ id: { $in: userIds } });
+    const profiles = await Profile.find({ username: { $in: userIds } });
 
-    // Create a mapping of user ID to profile data
     const profileMap = {};
     profiles.forEach(profile => {
-      profileMap[profile.id] = profile;
+      profileMap[profile.username] = profile;
     });
 
     // Append profile data to each post
