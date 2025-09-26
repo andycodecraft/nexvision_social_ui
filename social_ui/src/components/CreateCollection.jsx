@@ -83,7 +83,7 @@ const StickyActions = styled(Box)(({ theme }) => ({
 const platformOptions = [
   { key: "Twitter", label: "X (Twitter)", icon: XIcon, color: "#1D9BF0" },
   {
-    key: "instagram",
+    key: "Instagram",
     label: "Instagram",
     icon: InstagramIcon,
     color: "#E1306C",
@@ -280,9 +280,10 @@ export default function CreateCollectionPage() {
 
   // Normalize option/string to a handle (no leading @)
   const optionToHandle = (opt) => {
-    if (!opt) return "";
-    if (typeof opt === "string") return opt.replace(/^@/, "");
-    return (opt.username || opt.name || "").replace(/^@/, "");
+    return opt.username;
+    // if (!opt) return "";
+    // if (typeof opt === "string") return opt.replace(/^@/, "");
+    // return (opt.username || opt.name || "").replace(/^@/, "");
   };
 
   const normalizeOption = (opt) => {
@@ -361,7 +362,7 @@ export default function CreateCollectionPage() {
             variant="outlined"
             sx={{
               p: { xs: 2, md: 3 },
-              borderRadius: 3,
+              borderRadius: 1.5,
               bgcolor: "rgba(255,255,255,0.04)",
             }}
           >
@@ -489,7 +490,7 @@ export default function CreateCollectionPage() {
                 const primary = option.name || option.username || "Unknown";
                 const secondary = [
                   option.description,
-                  option.username && !option.username.startsWith('@') ? `@${option.username}` : option.username,
+                  option.username,
                 ]
                   .filter(Boolean)
                   .join(" • ");
@@ -591,7 +592,7 @@ export default function CreateCollectionPage() {
         {/* Right */}
         <Grid item xs={12} md={5}>
           <Stack spacing={2}>
-            <Card sx={{ borderRadius: 3, bgcolor: "rgba(255,255,255,0.04)" }}>
+            <Card sx={{ borderRadius: 1, bgcolor: "rgba(255,255,255,0.04)" }}>
               <CardContent>
                 <Stack direction="row" alignItems="center" gap={1.5}>
                   {activePlatform?.icon && (
@@ -619,7 +620,7 @@ export default function CreateCollectionPage() {
               </CardContent>
             </Card>
 
-            <Card sx={{ borderRadius: 3, bgcolor: "rgba(255,255,255,0.04)" }}>
+            <Card sx={{ borderRadius: 1, bgcolor: "rgba(255,255,255,0.04)" }}>
               <CardContent>
                 <Stack direction="row" alignItems="center" gap={1}>
                   <TipsAndUpdatesRoundedIcon color="primary" />

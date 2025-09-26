@@ -1,3 +1,4 @@
+// src/components/PostsTable.jsx
 import React, { useState, useMemo } from "react";
 import {
   Card,
@@ -7,6 +8,7 @@ import {
   Box,
   Tooltip,
   IconButton,
+  Link,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -14,7 +16,10 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import PublicIcon from "@mui/icons-material/Public";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
+import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import UserProfileDialog from "./UserProfileDialog";
 
 // Platform mapping with standard MUI icons
@@ -23,14 +28,13 @@ const platformMap = {
   YouTube: { icon: YouTubeIcon, color: "#FF0000" },
   LinkedIn: { icon: LinkedInIcon, color: "#0A66C2" },
   TikTok: { icon: MusicNoteIcon, color: "#25F4EE" },
-  Web: { icon: PublicIcon, color: "#22d3ee" },
+  Twitter: { icon: TwitterIcon, color: "#22d3ee" },
 };
 
-// Fallback: derive platform key from result.source text
 const getPlatform = (source) => {
   if (!source) return null;
   const key = Object.keys(platformMap).find(
-    (k) => k.toLowerCase() === source.toLowerCase()
+    (k) => k.toLowerCase() === String(source).toLowerCase()
   );
   return key ? platformMap[key] : null;
 };
@@ -42,8 +46,9 @@ const middleTruncate = (str = "", max = 34) => {
   return `${str.slice(0, keep)}…${str.slice(-keep)}`;
 };
 
-const Row = ({ label, link, value, isId }) => (
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
+// Label/value row
+const Row = ({ label, children }) => (
+  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mt: 1 }}>
     <Box
       sx={{
         width: 100,
@@ -51,61 +56,23 @@ const Row = ({ label, link, value, isId }) => (
         display: "flex",
         alignItems: "center",
         gap: 0.5,
+        pt: 0.25,
       }}
     >
       <Typography variant="subtitle2" color="text.secondary">
         {label}
       </Typography>
-      {link && (
-        <Tooltip title={link}>
-          <IconButton
-            component="a"
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            size="small"
-          >
-            <LinkIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
     </Box>
-
-    <Box sx={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 0.5 }}>
-      {isId ? (
-        <>
-          <Tooltip title={value}>
-            <Typography
-              sx={{
-                fontFamily: "monospace",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {middleTruncate(value, 40)}
-            </Typography>
-          </Tooltip>
-          <IconButton size="small" onClick={() => navigator.clipboard?.writeText(value)}>
-            <ContentCopyIcon fontSize="inherit" />
-          </IconButton>
-        </>
-      ) : (
-        <Typography
-          sx={{
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {typeof value === "string" || typeof value === "number" ? value : value ?? "-"}
-        </Typography>
-      )}
-    </Box>
+    <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
   </Box>
 );
 
-export default function PostsTable({ data, minH = 360, maxH = 380 }) {
+export default function PostsTable({
+  data,
+  minH = 360,
+  maxH = 380,
+  contentHeight = 96,
+}) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -113,7 +80,6 @@ export default function PostsTable({ data, minH = 360, maxH = 380 }) {
 
   const handleOpenUser = (u) => {
     if (!u) return;
-    // If user is a string, convert to minimal object
     const normalized = typeof u === "string" ? { name: u } : u;
     setUser(normalized);
     setOpen(true);
@@ -136,9 +102,18 @@ export default function PostsTable({ data, minH = 360, maxH = 380 }) {
           const platform = getPlatform(item.source);
           const PlatformIcon = platform?.icon;
 
-          // pull user info if it's an object
           const profile =
             typeof item.user === "object" && item.user !== null ? item.user : null;
+
+          const content =
+            item.content ||
+            item.cleanTitle ||
+            item.text ||
+            item.caption ||
+            item.title ||
+            "";
+
+          const pageLink = item.url || null;
 
           return (
             <Card
@@ -157,7 +132,7 @@ export default function PostsTable({ data, minH = 360, maxH = 380 }) {
               }}
             >
               <CardContent sx={{ py: 2, px: 2.25, flex: 1 }}>
-                {/* Header: Source icon + name, and clickable profile avatar (if present) */}
+                {/* Header */}
                 <Box
                   sx={{
                     display: "flex",
@@ -177,7 +152,6 @@ export default function PostsTable({ data, minH = 360, maxH = 380 }) {
                     <Typography fontWeight={700}>{item.source}</Typography>
                   </Box>
 
-                  {/* Right: clickable profile avatar if user object present */}
                   {profile ? (
                     <Tooltip title={`Open ${profile.name || "user"} profile`}>
                       <Avatar
@@ -188,7 +162,10 @@ export default function PostsTable({ data, minH = 360, maxH = 380 }) {
                           height: 40,
                           cursor: "pointer",
                           border: "2px solid rgba(255,255,255,0.2)",
-                          "&:hover": { borderColor: "primary.main", transform: "scale(1.05)" },
+                          "&:hover": {
+                            borderColor: "primary.main",
+                            transform: "scale(1.05)",
+                          },
                           transition: "all .15s ease",
                         }}
                         onClick={() => handleOpenUser(profile)}
@@ -199,58 +176,98 @@ export default function PostsTable({ data, minH = 360, maxH = 380 }) {
                   ) : null}
                 </Box>
 
-                {/* Title (link icon) */}
-                <Row label="Title" link={item.title} />
+                {/* CONTENT — transparent, borderless scroll area */}
+                <Row label="Title">
+                  <Box
+                    sx={{
+                      maxHeight: contentHeight,
+                      overflowY: "auto",
+                      pr: 1,
+                      // keep it identical to card background
+                      bgcolor: "transparent",
+                      border: "none",
+                      p: 0,
+                      // subtle scrollbar only (no box styling)
+                      "&::-webkit-scrollbar": { width: 8 },
+                      "&::-webkit-scrollbar-thumb": {
+                        backgroundColor: "rgba(255,255,255,0.2)",
+                        borderRadius: 8,
+                      },
+                      "&:hover::-webkit-scrollbar-thumb": {
+                        backgroundColor: "rgba(255,255,255,0.35)",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ whiteSpace: "pre-wrap" }}>
+                      {content || "-"}
+                    </Typography>
+                  </Box>
+                </Row>
 
-                {/* UID */}
-                <Row label="UID" value={item.uid} isId />
+                {/* PAGE LINK */}
+                <Row label="Page">
+                  {pageLink ? (
+                    <Tooltip title={pageLink}>
+                      <IconButton
+                        component="a"
+                        href={pageLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="small"
+                      >
+                        <LinkIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    <Typography>-</Typography>
+                  )}
+                </Row>
 
-                {/* Page (thumbnail else link icon) */}
-                <Row
-                  label="Page"
-                  link={item.pageUrl}
-                />
-
-                {/* Links */}
-                <Row
-                  label="Links"
-                  value={item.links && item.links.length ? item.links.join(", ") : "-"}
-                />
-
-                {/* Stats */}
-                <Box sx={{ display: "flex", gap: 3, mt: 1 }}>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">Likes</Typography>
+                {/* STATS */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 3,
+                    mt: 1.25,
+                    "& .stat": { display: "flex", alignItems: "center", gap: 0.75 },
+                  }}
+                >
+                  <Box className="stat">
+                    <ThumbUpOffAltIcon fontSize="small" />
                     <Typography>{item.likes ?? 0}</Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">Shares</Typography>
+                  <Box className="stat">
+                    <ShareOutlinedIcon fontSize="small" />
                     <Typography>{item.shares ?? 0}</Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">Comments</Typography>
+                  <Box className="stat">
+                    <ChatBubbleOutlineIcon fontSize="small" />
                     <Typography>{item.comments ?? 0}</Typography>
                   </Box>
                 </Box>
 
                 {/* ID */}
-                <Row label="ID" value={item.id} isId />
-
-                {/* Score */}
-                <Box sx={{ display: "flex", gap: 3, mt: 1 }}>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Score
+                <Row label="ID">
+                  <Tooltip title={item.id}>
+                    <Typography
+                      sx={{
+                        fontFamily: "monospace",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {middleTruncate(item.id, 40)}
                     </Typography>
-                    <Typography>{item.score}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Normalized Score
-                    </Typography>
-                    <Typography>{item.normalizedScore}</Typography>
-                  </Box>
-                </Box>
+                  </Tooltip>
+                  <IconButton
+                    size="small"
+                    onClick={() => navigator.clipboard?.writeText(item.id)}
+                    sx={{ ml: 0.5 }}
+                  >
+                    <ContentCopyIcon fontSize="inherit" />
+                  </IconButton>
+                </Row>
               </CardContent>
             </Card>
           );

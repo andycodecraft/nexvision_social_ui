@@ -47,7 +47,7 @@ const platformDefs = [
   { key: "am", label: "AMZ", color: "#ff9900" },
   { key: "fb", label: "FB", color: "#1877f2" },
   { key: "yt", label: "YT", color: "#ff0000" },
-  { key: "th", label: "TH", color: "#ff5ca1" }, // Threads placeholder
+  { key: "th", label: "TH", color: "#ff5ca1" },
 ];
 
 export default function CollectionDetailPage() {
@@ -61,18 +61,22 @@ export default function CollectionDetailPage() {
   const [unique, setUnique] = useState("false");
   const [sort, setSort] = useState("recency");
   const [view, setView] = useState("grid");
-  const [range, setRange] = useState([0, 100]); // acts like a date range slider UI
-  const { profiles, setProfiles } = useProfiles();
-  const [selectedProfileId, setSelectedProfileId] = useState(null);
+  const [range, setRange] = useState([0, 100]);
+  const { profiles } = useProfiles();
+
+  // ✅ NEW: multi-select profile ids
+  const [selectedProfileIds, setSelectedProfileIds] = useState([]);
+
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // Fake detail fetch
+
   const detail = useMemo(
     () => ({ id: collectionId, name: `Posts for ${profiles.name}`, total: 0 }),
-    [collectionId]
+    [collectionId, profiles.name]
   );
 
+  // Load posts
   useEffect(() => {
     let cancelled = false;
 
@@ -83,35 +87,86 @@ export default function CollectionDetailPage() {
 
       if (!cancelled) {
         if (ok) {
-          // adjust if API returns {posts: []} instead of []
           setResults(Array.isArray(data) ? data : data.response || []);
         } else {
-          setError(data.message || "Failed to load posts");
+          setError((data)?.message || "Failed to load posts");
         }
         setLoading(false);
       }
     }
 
-    if (collectionId) {
-      fetchData();
-    }
-
+    if (collectionId) fetchData();
     return () => {
-      cancelled = true; // cleanup if unmounted
+      cancelled = true;
     };
   }, [collectionId]);
 
-  const toggleProfile = (id) => {
-    setSelectedProfileIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
+  // ✅ Default select all profiles when they arrive
+  useEffect(() => {
+    const items = Array.isArray(profiles?.profiles) ? profiles.profiles : [];
+    if (items.length && selectedProfileIds.length === 0) {
+      setSelectedProfileIds(items.map((p) => p.username));
+    }
+  }, [profiles?.profiles, selectedProfileIds.length]);
 
   const togglePlatform = (key) => {
     setPlatforms((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
+
+  // ✅ Filter results by selected profile ids (by userid/username/etc.)
+  const filteredResults = useMemo(() => {
+    if (!results?.length) return [];
+    const selected = new Set(
+      (selectedProfileIds || []).map((x) => String(x).toLowerCase())
+    );
+
+    const ownsPost = (r) => {
+      const candidates = [
+        r?.userid,
+        r?.author?.id
+      ]
+        .filter(Boolean)
+        .map((x) => String(x).toLowerCase());
+      return candidates.some((c) => selected.has(c));
+    };
+    // Start with profile filter
+    
+    let arr = selected.size ? results.filter(ownsPost) : results;
+    
+    // (optional) Apply text filter
+    if (q.trim()) {
+      const needle = q.trim().toLowerCase();
+      arr = arr.filter(
+        (r) =>
+          String(r?.title || r?.text || "")
+            .toLowerCase()
+            .includes(needle) ||
+          String(r?.url || r?.pageUrl || "")
+            .toLowerCase()
+            .includes(needle)
+      );
+    }
+
+    // TODO: If you want platform filtering too, map `r.source` -> your keys
+    // For now, we leave platform chips as UI only.
+
+    // Sort
+    if (sort === "recency") {
+      arr = [...arr].sort(
+        (a, b) => (b.publicationTime || 0) - (a.publicationTime || 0)
+      );
+    } else if (sort === "engagement") {
+      arr = [...arr].sort(
+        (a, b) =>
+          (b.likes || 0) + (b.shares || 0) + (b.comment || 0) -
+          ((a.likes || 0) + (a.shares || 0) + (a.comment || 0))
+      );
+    }
+
+    return arr;
+  }, [results, selectedProfileIds, q, sort]);
 
   return (
     <Container maxWidth={false} sx={{ py: 2, px: { xs: 1.5, md: 3 } }}>
@@ -179,14 +234,7 @@ export default function CollectionDetailPage() {
           </Grid>
 
           <Grid item xs={12} md={4.5} lg={5}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.25,
-                flexWrap: "wrap",
-              }}
-            >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, flexWrap: "wrap" }}>
               {platformDefs.map((p) => {
                 const active = platforms.includes(p.key);
                 return (
@@ -195,19 +243,11 @@ export default function CollectionDetailPage() {
                       clickable
                       onClick={() => togglePlatform(p.key)}
                       label={p.label}
-                      avatar={
-                        <Avatar sx={{ bgcolor: p.color, color: "#fff" }}>
-                          {p.label[0]}
-                        </Avatar>
-                      }
+                      avatar={<Avatar sx={{ bgcolor: p.color, color: "#fff" }}>{p.label[0]}</Avatar>}
                       variant={active ? "filled" : "outlined"}
                       sx={{
-                        borderColor: active
-                          ? "transparent"
-                          : "rgba(255,255,255,0.2)",
-                        bgcolor: active
-                          ? "rgba(255,255,255,0.12)"
-                          : "transparent",
+                        borderColor: active ? "transparent" : "rgba(255,255,255,0.2)",
+                        bgcolor: active ? "rgba(255,255,255,0.12)" : "transparent",
                         "&:hover": { bgcolor: "rgba(255,255,255,0.08)" },
                       }}
                     />
@@ -219,30 +259,18 @@ export default function CollectionDetailPage() {
 
           <Grid item xs={12} md={3.5} lg={3.5}>
             <Box sx={{ px: 1 }}>
-              <Slider
-                size="small"
-                value={range}
-                onChange={(_, v) => setRange(v)}
-              />
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mt: -1,
-                }}
-              >
-                <Typography variant="caption" color="text.secondary">
-                  Start
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  End
-                </Typography>
+              <Slider size="small" value={range} onChange={(_, v) => setRange(v)} />
+              <Box sx={{ display: "flex", justifyContent: "space-between", mt: -1 }}>
+                <Typography variant="caption" color="text.secondary">Start</Typography>
+                <Typography variant="caption" color="text.secondary">End</Typography>
               </Box>
             </Box>
           </Grid>
         </Grid>
+
         <Divider sx={{ my: 2 }} />
-        {/* Row 2: dropdown filters + sort + view */}
+
+        {/* Row 2: dropdown filters + sort + view (unchanged UI) */}
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={2.4}>
             <FormControl fullWidth size="small" variant="outlined">
@@ -373,15 +401,19 @@ export default function CollectionDetailPage() {
             </Tooltip>
           </Grid>
         </Grid>
+
         <Divider sx={{ my: 2 }} />
+
+        {/* ✅ Multi-select profiles bar */}
         <Box sx={{ mt: 1 }}>
           <MiniProfilesBar
-            items={profiles.profiles}
-            selectedId={selectedProfileId}
-            onSelect={setSelectedProfileId}
+            items={profiles?.profiles || []}
+            selectedIds={selectedProfileIds}
+            onChange={setSelectedProfileIds}
           />
         </Box>
       </Paper>
+
       <Box sx={{ mt: 2, minHeight: 420, position: "relative" }}>
         {loading && (
           <Typography variant="body2" color="text.secondary">
@@ -393,7 +425,7 @@ export default function CollectionDetailPage() {
             {error}
           </Typography>
         )}
-        {!loading && !error && <PostsTable data={results} />}
+        {!loading && !error && <PostsTable data={filteredResults} view={view} />}
       </Box>
     </Container>
   );

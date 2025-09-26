@@ -58,16 +58,16 @@ function XIcon(props) {
 const platforms = [
   { key: "all", label: "All", color: "default" },
   { key: "LinkedIn", label: "", color: "#0A66C2", Icon: LinkedInIcon },
-  { key: "x", label: "", color: "#1D9BF0", Icon: XIcon },
+  { key: "Twitter", label: "", color: "#1D9BF0", Icon: XIcon },
   {
     key: "instagram",
     label: "",
     color: "#E1306C",
     Icon: InstagramIcon,
   },
-  { key: "facebook", label: "", color: "#1877F2", Icon: FacebookIcon },
-  { key: "youtube", label: "", color: "#FF0000", Icon: YouTubeIcon },
-  { key: "tiktok", label: "", color: "#25F4EE", Icon: MusicNoteIcon },
+  { key: "Facebook", label: "", color: "#1877F2", Icon: FacebookIcon },
+  { key: "Youtube", label: "", color: "#FF0000", Icon: YouTubeIcon },
+  { key: "Tiktok", label: "", color: "#25F4EE", Icon: MusicNoteIcon },
   { key: "web", label: "", color: "#22d3ee", Icon: PublicIcon },
 ];
 
@@ -217,7 +217,7 @@ export default function DashboardPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <GradientHeader sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
+      <GradientHeader sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 1 }}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           alignItems={{ xs: "flex-start", md: "center" }}
@@ -296,20 +296,9 @@ export default function DashboardPage() {
 
       {/* Grid */}
       {loading ? (
-        <Grid container spacing={3}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Grid key={i} item xs={12} sm={6} md={4} lg={3}>
-              <Card>
-                <Skeleton variant="rectangular" height={180} />
-                <CardContent>
-                  <Skeleton width="60%" />
-                  <Skeleton width="40%" />
-                  <Skeleton width="80%" />
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <Typography variant="body2" color="text.secondary">
+          Loading collections...
+        </Typography>
       ) : error ? (
         <Box sx={{ p: 6, textAlign: "center", color: "text.secondary" }}>
           <Typography variant="h6">Failed to load</Typography>
