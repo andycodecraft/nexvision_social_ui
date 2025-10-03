@@ -11,26 +11,8 @@ exports.getProfiles = async (req, res) => {
         .status(400)
         .json({ status: false, message: "Platform and query are required." });
     }
-
-    const headers = getHeaders(req.headers);
-    const constructedParams = {
-      source: [platform],
-      q: [query],
-    };
-
-    const searchParams = new url.URLSearchParams(constructedParams);
-
-    const requestsArgs = {
-      headers: headers,
-      data: null,
-      params: searchParams,
-    };
-
-    const apiUrl = "http://104.250.167.186:4600/api/search/users";
-    const fullUrl = `${apiUrl}?${searchParams.toString()}`;
-    const response = await axios.get(fullUrl, {
-      headers: requestsArgs.headers,
-    });
+    const apiUrl = `http://172.111.162.203:18100/${platform}/search_user?q=${query}`;
+    const response = await axios.get(apiUrl)
     const resData = {
       status: true,
       response: response.data,
