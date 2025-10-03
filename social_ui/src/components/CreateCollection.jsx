@@ -81,17 +81,17 @@ const StickyActions = styled(Box)(({ theme }) => ({
 
 /* --------------------------- Platform options -------------------------- */
 const platformOptions = [
-  { key: "Twitter", label: "X (Twitter)", icon: XIcon, color: "#1D9BF0" },
+  { key: "twitter", label: "X (Twitter)", icon: XIcon, color: "#1D9BF0" },
   {
-    key: "Instagram",
+    key: "instagram",
     label: "Instagram",
     icon: InstagramIcon,
     color: "#E1306C",
   },
-  { key: "Facebook", label: "Facebook", icon: FacebookIcon, color: "#1877F2" },
-  { key: "Youtube", label: "YouTube", icon: YouTubeIcon, color: "#FF0000" },
-  { key: "LinkedIn", label: "LinkedIn", icon: LinkedInIcon, color: "#0A66C2" },
-  { key: "Tiktok", label: "TikTok", icon: MusicNoteIcon, color: "#25F4EE" },
+  { key: "facebook", label: "Facebook", icon: FacebookIcon, color: "#1877F2" },
+  { key: "youtube", label: "YouTube", icon: YouTubeIcon, color: "#FF0000" },
+  { key: "linkedin", label: "LinkedIn", icon: LinkedInIcon, color: "#0A66C2" },
+  { key: "tiktok", label: "TikTok", icon: MusicNoteIcon, color: "#25F4EE" },
   { key: "web", label: "Web", icon: PublicIcon, color: "#22d3ee" },
 ];
 

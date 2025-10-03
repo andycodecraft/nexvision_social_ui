@@ -17,6 +17,7 @@ import YouTubeIcon from "@mui/icons-material/YouTube";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import TwitterIcon from "@mui/icons-material/Twitter";
+import InstagramIcon from "@mui/icons-material/Instagram";
 import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -29,6 +30,7 @@ const platformMap = {
   LinkedIn: { icon: LinkedInIcon, color: "#0A66C2" },
   TikTok: { icon: MusicNoteIcon, color: "#25F4EE" },
   Twitter: { icon: TwitterIcon, color: "#22d3ee" },
+  Instagram: { icon: InstagramIcon, color: '#E4405F'}
 };
 
 const getPlatform = (source) => {
