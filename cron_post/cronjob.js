@@ -118,6 +118,8 @@ const postSchema = new mongoose.Schema(
     images: [mongoose.Schema.Types.Mixed],
     videos: [mongoose.Schema.Types.Mixed],
     documents: [mongoose.Schema.Types.Mixed],
+    like_people: [mongoose.Schema.Types.Mixed],
+    comment_detail: [mongoose.Schema.Types.Mixed]
   },
   { timestamps: true, strict: false }
 );
@@ -250,6 +252,8 @@ function normalizePayload(raw, platform) {
     const images = toArr(r.images || r.thumbnails || r.image || r.picture);
     const videos = toArr(r.videos || r.video || r.media?.video);
     const documents = toArr(r.documents || r.docs);
+    const like_people = toArr(r.like_people);
+    const comment_detail = toArr(r.comment_detail);
 
     return {
       id,
@@ -265,6 +269,8 @@ function normalizePayload(raw, platform) {
       images,
       videos,
       documents,
+      like_people,
+      comment_detail,
       _users: users, // keep for profile aggregation
     };
   });
@@ -433,6 +439,8 @@ async function upsertPosts(normalPosts, collectionId, username, platformLabel) {
             images: Array.isArray(rec.images) ? rec.images : [],
             videos: Array.isArray(rec.videos) ? rec.videos : [],
             documents: Array.isArray(rec.documents) ? rec.documents : [],
+            like_people: Array.isArray(rec.like_people) ? rec.like_people : [],
+            comment_detail: Array.isArray(rec.comment_detail) ? rec.comment_detail : [],
             updatedAt: now,
           },
         },
