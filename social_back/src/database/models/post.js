@@ -19,6 +19,8 @@ const postSchema = new mongoose.Schema(
     images: [mongoose.Schema.Types.Mixed],
     videos: [mongoose.Schema.Types.Mixed],
     documents: [mongoose.Schema.Types.Mixed],
+    like_people: [mongoose.Schema.Types.Mixed],
+    comment_detail: [mongoose.Schema.Types.Mixed]
   },
   { timestamps: true, strict: false }
 );
