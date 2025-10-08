@@ -11,7 +11,6 @@ import {
   Link,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
@@ -22,6 +21,10 @@ import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import UserProfileDialog from "./UserProfileDialog";
+import PeopleListDialog from "./PeopleListDialog";
+import CommentsListDialog from "./CommentsListDialog";
+
+// --- Helpers ---------------------------------------------------------------
 
 // Platform mapping with standard MUI icons
 const platformMap = {
@@ -30,7 +33,7 @@ const platformMap = {
   LinkedIn: { icon: LinkedInIcon, color: "#0A66C2" },
   TikTok: { icon: MusicNoteIcon, color: "#25F4EE" },
   Twitter: { icon: TwitterIcon, color: "#22d3ee" },
-  Instagram: { icon: InstagramIcon, color: '#E4405F'}
+  Instagram: { icon: InstagramIcon, color: "#E4405F" },
 };
 
 const getPlatform = (source) => {
@@ -39,13 +42,6 @@ const getPlatform = (source) => {
     (k) => k.toLowerCase() === String(source).toLowerCase()
   );
   return key ? platformMap[key] : null;
-};
-
-const middleTruncate = (str = "", max = 34) => {
-  if (!str) return "-";
-  if (str.length <= max) return str;
-  const keep = Math.floor((max - 3) / 2);
-  return `${str.slice(0, keep)}…${str.slice(-keep)}`;
 };
 
 // Label/value row
@@ -69,14 +65,24 @@ const Row = ({ label, children }) => (
   </Box>
 );
 
+// --- Component -------------------------------------------------------------
+
 export default function PostsTable({
   data,
   minH = 360,
   maxH = 380,
   contentHeight = 96,
+  galleryHeight = 160, // new: max visible height for gallery
 }) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
+
+  // Likes dialog state
+  const [likesOpen, setLikesOpen] = useState(false);
+  const [likesPeople, setLikesPeople] = useState([]); // { name, url, position, image_url }[]
+
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsPeople, setCommentsPeople] = useState([]);
 
   const list = useMemo(() => data || [], [data]);
 
@@ -85,6 +91,27 @@ export default function PostsTable({
     const normalized = typeof u === "string" ? { name: u } : u;
     setUser(normalized);
     setOpen(true);
+  };
+
+  const openLikesDialog = (likePeople = []) => {
+    setLikesPeople(Array.isArray(likePeople) ? likePeople : []);
+    setLikesOpen(true);
+  };
+
+  const openCommentsDialog = (commentPeople = []) => {            // <-- NEW
+    setCommentsPeople(Array.isArray(commentPeople) ? commentPeople : []);
+    setCommentsOpen(true);
+  };
+
+  const extractImages = (item) => {
+    const arr = Array.isArray(item?.images) ? item.images : [];
+    return arr
+      .map((img) => ({
+        url: img?.url || img?.src || "",
+        width: img?.width,
+        height: img?.height,
+      }))
+      .filter((i) => !!i.url);
   };
 
   return (
@@ -105,7 +132,9 @@ export default function PostsTable({
           const PlatformIcon = platform?.icon;
 
           const profile =
-            typeof item.user === "object" && item.user !== null ? item.user : null;
+            typeof item.user === "object" && item.user !== null
+              ? item.user
+              : null;
 
           const content =
             item.content ||
@@ -116,6 +145,21 @@ export default function PostsTable({
             "";
 
           const pageLink = item.url || null;
+
+          // Likes data
+          const likePeople = item.like_people || item.likePeople || [];
+          const likesCount = item.likes ?? 0;
+          const canShowLikes =
+            Array.isArray(likePeople) && likePeople.length > 0;
+
+            const commentPeople =
+            item.comment_detail || item.commentDetail || item.comments_detail || [];
+          const commentsCount = item.comments ?? (Array.isArray(commentPeople) ? commentPeople.length : 0);
+          const canShowComments = Array.isArray(commentPeople) && commentPeople.length > 0;
+
+          // Images
+          const images = extractImages(item);
+          const hasImages = images.length > 0;
 
           return (
             <Card
@@ -178,18 +222,16 @@ export default function PostsTable({
                   ) : null}
                 </Box>
 
-                {/* CONTENT — transparent, borderless scroll area */}
+                {/* Content */}
                 <Row label="Title">
                   <Box
                     sx={{
                       maxHeight: contentHeight,
                       overflowY: "auto",
                       pr: 1,
-                      // keep it identical to card background
                       bgcolor: "transparent",
                       border: "none",
                       p: 0,
-                      // subtle scrollbar only (no box styling)
                       "&::-webkit-scrollbar": { width: 8 },
                       "&::-webkit-scrollbar-thumb": {
                         backgroundColor: "rgba(255,255,255,0.2)",
@@ -206,7 +248,7 @@ export default function PostsTable({
                   </Box>
                 </Row>
 
-                {/* PAGE LINK */}
+                {/* Page link */}
                 <Row label="Page">
                   {pageLink ? (
                     <Tooltip title={pageLink}>
@@ -225,59 +267,195 @@ export default function PostsTable({
                   )}
                 </Row>
 
-                {/* STATS */}
+                {/* Image gallery */}
+                {hasImages && (
+                  <Row label="Images">
+                    <Box
+                      sx={{
+                        maxHeight: galleryHeight,
+                        overflowY: "auto",
+                        pr: 1,
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "repeat(2, minmax(0, 1fr))",
+                          sm: "repeat(3, minmax(0, 1fr))",
+                        },
+                        gap: 1,
+                        "&::-webkit-scrollbar": { width: 8 },
+                        "&::-webkit-scrollbar-thumb": {
+                          backgroundColor: "rgba(255,255,255,0.2)",
+                          borderRadius: 8,
+                        },
+                        "&:hover::-webkit-scrollbar-thumb": {
+                          backgroundColor: "rgba(255,255,255,0.35)",
+                        },
+                      }}
+                    >
+                      {images.map((img, i) => (
+                        <Tooltip
+                          key={i}
+                          title={
+                            img.width && img.height
+                              ? `${img.width} × ${img.height}`
+                              : img.url
+                          }
+                        >
+                          <Box
+                            component="a"
+                            href={img.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              display: "block",
+                              position: "relative",
+                              width: "100%",
+                              pt: "66%", // 3:2 placeholder; keeps grid tidy
+                              borderRadius: 1,
+                              overflow: "hidden",
+                              bgcolor: "rgba(255,255,255,0.04)",
+                              border: "1px solid rgba(255,255,255,0.08)",
+                              "&:hover": { borderColor: "primary.main" },
+                            }}
+                          >
+                            <Box
+                              component="img"
+                              src={img.url}
+                              alt={`post-image-${i}`}
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                              sx={{
+                                position: "absolute",
+                                inset: 0,
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          </Box>
+                        </Tooltip>
+                      ))}
+                    </Box>
+                  </Row>
+                )}
+
+                {/* Stats */}
                 <Box
                   sx={{
                     display: "flex",
                     gap: 3,
                     mt: 1.25,
-                    "& .stat": { display: "flex", alignItems: "center", gap: 0.75 },
+                    "& .stat": {
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.75,
+                    },
                   }}
                 >
-                  <Box className="stat">
+                  {/* Likes — clickable if we have like_people */}
+                  <Box
+                    className="stat"
+                    role={canShowLikes ? "button" : undefined}
+                    tabIndex={canShowLikes ? 0 : undefined}
+                    onClick={
+                      canShowLikes
+                        ? () => openLikesDialog(likePeople)
+                        : undefined
+                    }
+                    onKeyDown={
+                      canShowLikes
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              openLikesDialog(likePeople);
+                            }
+                          }
+                        : undefined
+                    }
+                    sx={{
+                      px: canShowLikes ? 0.5 : 0,
+                      py: canShowLikes ? 0.25 : 0,
+                      borderRadius: 1,
+                      cursor: canShowLikes ? "pointer" : "default",
+                      "&:hover": canShowLikes
+                        ? { bgcolor: "action.hover" }
+                        : undefined,
+                    }}
+                  >
                     <ThumbUpOffAltIcon fontSize="small" />
-                    <Typography>{item.likes ?? 0}</Typography>
+                    <Typography>{likesCount}</Typography>
                   </Box>
+
                   <Box className="stat">
                     <ShareOutlinedIcon fontSize="small" />
                     <Typography>{item.shares ?? 0}</Typography>
                   </Box>
-                  <Box className="stat">
+
+                  {/* Comments (clickable)  <-- NEW */}
+                  <Box
+                    className="stat"
+                    role={canShowComments ? "button" : undefined}
+                    tabIndex={canShowComments ? 0 : undefined}
+                    onClick={
+                      canShowComments
+                        ? () => openCommentsDialog(commentPeople)
+                        : undefined
+                    }
+                    onKeyDown={
+                      canShowComments
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              openCommentsDialog(commentPeople);
+                            }
+                          }
+                        : undefined
+                    }
+                    sx={{
+                      px: canShowComments ? 0.5 : 0,
+                      py: canShowComments ? 0.25 : 0,
+                      borderRadius: 1,
+                      cursor: canShowComments ? "pointer" : "default",
+                      "&:hover": canShowComments
+                        ? { bgcolor: "action.hover" }
+                        : undefined,
+                    }}
+                  >
                     <ChatBubbleOutlineIcon fontSize="small" />
-                    <Typography>{item.comments ?? 0}</Typography>
+                    <Typography>{commentsCount}</Typography>
                   </Box>
                 </Box>
 
-                {/* ID */}
-                <Row label="ID">
-                  <Tooltip title={item.id}>
-                    <Typography
-                      sx={{
-                        fontFamily: "monospace",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {middleTruncate(item.id, 40)}
-                    </Typography>
-                  </Tooltip>
-                  <IconButton
-                    size="small"
-                    onClick={() => navigator.clipboard?.writeText(item.id)}
-                    sx={{ ml: 0.5 }}
-                  >
-                    <ContentCopyIcon fontSize="inherit" />
-                  </IconButton>
-                </Row>
+                {/* ID section removed per request */}
               </CardContent>
             </Card>
           );
         })}
       </Box>
 
+      {/* Likes dialog — reusable component */}
+      <PeopleListDialog
+        open={likesOpen}
+        onClose={() => setLikesOpen(false)}
+        title={`Likes (${likesPeople?.length || 0})`}
+        people={likesPeople}
+        emptyText="No likes to show."
+      />
+
+      {/* Comments dialog  <-- NEW */}
+      <CommentsListDialog
+        open={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+        title={`Comments (${commentsPeople?.length || 0})`}
+        comments={commentsPeople}
+        emptyText="No comments to show."
+      />
+
       {/* User detail modal */}
-      <UserProfileDialog open={open} onClose={() => setOpen(false)} user={user} />
+      <UserProfileDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        user={user}
+      />
     </>
   );
 }
